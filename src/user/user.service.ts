@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/database/PrismaService';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -26,7 +27,12 @@ export class UserService {
     });
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, req) {
+
+    if(req.user.id != id){
+      throw new UnauthorizedException();
+    }
+
     return await this.prisma.user.findFirst({
       where:{
         id
@@ -34,7 +40,19 @@ export class UserService {
     });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
+  async findOneByEmail(email: string) {
+    return await this.prisma.user.findUnique({
+      where:{
+        email: email
+      }
+    });
+  }
+
+  update(id: number, updateUserDto: UpdateUserDto, req) {
+
+    if(req.user.id != id){
+      throw new UnauthorizedException();
+    }
     return this.prisma.user.update({
       where: {
         id
@@ -43,7 +61,12 @@ export class UserService {
     });
   }
 
-  remove(id: number) {
+  remove(id: number, req) {
+
+    if(req.user.id != id){
+      throw new UnauthorizedException();
+    }
+
     return this.prisma.user.delete({
       where: {
         id
